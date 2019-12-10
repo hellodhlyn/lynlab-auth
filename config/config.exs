@@ -7,6 +7,8 @@
 # General application configuration
 use Mix.Config
 
+# Configures repo
+config :luppiter_auth, LuppiterAuth.Repo, migration_timestamps: [inserted_at: :created_at]
 config :luppiter_auth,
   ecto_repos: [LuppiterAuth.Repo]
 
