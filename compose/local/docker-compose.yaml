@@ -1,0 +1,10 @@
+version: '3'
+services:
+  luppiter-auth-db:
+    image: postgres:9.6
+    container_name: luppiter-auth-db
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: luppiter_auth
+    ports:
+      - 5432:5432

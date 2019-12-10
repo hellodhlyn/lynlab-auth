@@ -5,6 +5,10 @@ defmodule LuppiterAuthWeb.Router do
     plug :accepts, ["json"]
   end
 
+  scope "/", LuppiterAuthWeb do
+    get "/ping", PingController, :index
+  end
+
   scope "/api", LuppiterAuthWeb do
     pipe_through :api
   end
