@@ -6,17 +6,16 @@ defmodule LuppiterAuthWeb.Api.V1.AccountsController do
   alias LuppiterAuth.Schemas.UserAccount
 
   def create_by_google(conn, params) do
-    case LuppiterAuth.Providers.Google.authenticate(params["idToken"]) do
+    case LuppiterAuth.Providers.Google.authenticate(params["id_token"]) do
       {:error, reason} ->
         Logger.warn("Failed to get Google user info: #{reason}")
-        conn |> put_status(400) |> text("")
+        conn |> put_status(400) |> text("invalid_provider_id")
 
       {:ok, info} ->
         case UserAccount.create_from_user_info(info, params["username"]) do
-          {:error, reason} -> nil  # TODO implement
-          {:ok, account}   -> nil  # TODO implement
+          {:error, reason} -> conn |> put_status(400) |> text(reason)
+          {:ok, account}   -> conn |> json(account.user_identity)
         end
-        text(conn, "OK")
     end
   end
 end

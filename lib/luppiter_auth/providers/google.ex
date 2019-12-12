@@ -10,7 +10,7 @@ defmodule LuppiterAuth.Providers.Google do
         :provider  => "google",
         :user_id   => info.user_id,
         :email     => if(info.verified_email, do: info.email, else: nil), 
-        :expire_at => DateTime.from_unix!((DateTime.utc_now() |> DateTime.to_unix()) + info.expires_in),
+        :expire_at => ((DateTime.utc_now() |> DateTime.to_unix()) + info.expires_in) |> DateTime.from_unix!(),
       }}
       {:error, reason} -> {:error, reason.body}
     end

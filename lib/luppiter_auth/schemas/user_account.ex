@@ -14,22 +14,24 @@ defmodule LuppiterAuth.Schemas.UserAccount do
   end
 
   @spec create_from_user_info(LuppiterAuth.Providers.UserInfo.t(), String.t())
-          :: {:ok, UserAccount} | {:error, String.t()}
+          :: {:ok, __MODULE__} | {:error, String.t()}
   def create_from_user_info(user_info, username) do
-    account_exists?(user_info.provider, user_info.user_id) or username_exists?(username)
+    (exists_by?(provider: user_info.provider, provider_id: user_info.user_id) or UserIdentity.exists_by?(username: username))
     |> case do
       true  -> {:error, "duplicated_account"}
-      false -> {:ok, nil}  # TODO implement
+      false ->
+        Repo.transaction(fn ->
+          Repo.insert!(%__MODULE__{
+            provider:      user_info.provider,
+            provider_id:   user_info.user_id,
+            user_identity: UserIdentity.create_from_user_info!(user_info, username),
+          })
+        end)
     end
   end
 
-  @spec account_exists?(String.t(), String.t()) :: boolean()
-  defp account_exists?(provider, provider_id) do
-    Repo.get_by(__MODULE__, provider: provider, provider_id: provider_id) != nil
-  end
-
-  @spec username_exists?(String.t()) :: boolean()
-  defp username_exists?(username) do
-    Repo.get_by(UserIdentity, username: username) != nil
+  @spec exists_by?(Keyword.t()) :: boolean()
+  def exists_by?(query) do
+    Repo.get_by(__MODULE__, query) != nil
   end
 end

@@ -37,7 +37,9 @@
 ```jsonc
 {
   "uuid": "string",
-  "username": "string"
+  "username": "string",
+  "email": "string",
+  "created_at": "datetime"
 }
 ```
 
@@ -66,7 +68,7 @@
     ```jsonc
     {
       "username": "string",
-      "idToken": "string"
+      "id_token": "string"
     }
     ```
 * Returns
@@ -80,7 +82,7 @@
     ```jsonc
     {
       "appId": "string",
-      "idToken": "string"
+      "id_token": "string"
     }
     ```
 * Returns
@@ -91,7 +93,7 @@
 ### GET /v1/applications
 
 * Query Parameters
-    * `ownerId` (string?)
+    * `owner_id` (string?)
 * Returns
     * 200 OK
 
@@ -103,7 +105,7 @@ Authentication required.
     ```jsonc
     {
       "name": "string",
-      "redirectUrl": "string?"
+      "redirect_url": "string?"
     }
     ```
 * Returns
@@ -117,7 +119,7 @@ Authentication required.
 * Request Body
     ```jsonc
     {
-      "appId": "string"
+      "app_id": "string"
     }
     ```
 * Returns
