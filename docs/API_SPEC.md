@@ -71,7 +71,7 @@
     ```
 * Returns
     * 201 Created
-    * 400 Bad Request (duplicated_username)
+    * 400 Bad Request (duplicated_account)
     * 400 Bad Request (invalid_provider_id)
 
 ### POST /v1/api_tokens/google
