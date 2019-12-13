@@ -42,7 +42,13 @@ defmodule LuppiterAuth.MixProject do
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
       {:google_api_o_auth2, "~> 0.4.0"},  # KEEP THIS; 0.5.0 brokes feature.
-      {:goth, "~> 0.6.0"}
+      {:goth, "~> 0.6.0"},
+      {:secure_random, "~> 0.5"},
+
+      # Test
+      {:ex_machina, "~> 2.3", only: :test},
+      {:faker, "~> 0.13", only: :test},
+      {:mock, "~> 0.3.0", only: :test},
     ]
   end
 

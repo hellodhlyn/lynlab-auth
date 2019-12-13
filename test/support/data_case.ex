@@ -24,6 +24,7 @@ defmodule LuppiterAuth.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       import LuppiterAuth.DataCase
+      import LuppiterAuth.Factory
     end
   end
 

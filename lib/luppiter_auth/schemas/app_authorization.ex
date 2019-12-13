@@ -1,4 +1,4 @@
-defmodule LuppiterAuth.Schemas.AppAuthoization do
+defmodule LuppiterAuth.Schemas.AppAuthorization do
   use LuppiterAuth.Schema
 
   alias LuppiterAuth.Schemas.{Application, UserIdentity}
