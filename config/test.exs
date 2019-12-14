@@ -16,3 +16,6 @@ config :luppiter_auth, LuppiterAuthWeb.Endpoint,
 
 # Print only warnings and errors during test
 config :logger, level: :error
+
+config :goth,
+  disabled: true
