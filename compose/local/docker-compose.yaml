@@ -1,7 +1,7 @@
 version: '3'
 services:
   luppiter-auth-db:
-    image: postgres:9.6
+    image: postgres:12.1
     container_name: luppiter-auth-db
     environment:
       POSTGRES_PASSWORD: postgres
