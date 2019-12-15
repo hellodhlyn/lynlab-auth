@@ -18,8 +18,13 @@
 
 ```jsonc
 {
-  "uuid": "string",
-  "name": "string"
+  "app_id": "string",
+  "name": "string",
+  "created_at": "datetime",
+  "owner": {
+    "uuid": "string",
+    "username": "string"
+  }
 }
 ```
 
@@ -93,7 +98,12 @@
 ### GET /v1/applications
 
 * Query Parameters
-    * `owner_id` (string?)
+    * `owner_id` (string)
+* Returns
+    * 200 OK
+
+### GET /v1/applications/:app_id
+
 * Returns
     * 200 OK
 

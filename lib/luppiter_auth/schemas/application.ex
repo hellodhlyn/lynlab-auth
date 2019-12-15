@@ -12,4 +12,15 @@ defmodule LuppiterAuth.Schemas.Application do
 
     timestamps()
   end
+
+  defimpl Jason.Encoder, for: [__MODULE__] do
+    def encode(struct, opts) do
+      Jason.Encode.map(%{
+        app_id: struct.uuid,
+        name: struct.name,
+        created_at: struct.created_at,
+        owner: %{uuid: struct.owner.uuid, username: struct.owner.username},
+      }, opts)
+    end
+  end
 end

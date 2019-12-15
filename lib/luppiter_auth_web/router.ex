@@ -13,6 +13,8 @@ defmodule LuppiterAuthWeb.Router do
     pipe_through :api
 
     scope "/v1", V1 do
+      get "/applications", ApplicationsController, :list
+      get "/applications/:app_id", ApplicationsController, :get
       post "/accounts/google", AccountsController, :create_by_google
     end
   end
