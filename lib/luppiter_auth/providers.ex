@@ -3,7 +3,7 @@ defmodule LuppiterAuth.Providers.UserInfo do
     :provider  => String.t(),
     :user_id   => String.t(),
     :email     => String.t(),
-    :expire_at => DateTime.t(),
+    :expire_at => NaiveDateTime.t(),
   }
 
   @derive Jason.Encoder

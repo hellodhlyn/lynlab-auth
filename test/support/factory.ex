@@ -9,7 +9,7 @@ defmodule LuppiterAuth.Factory do
     %Schemas.ApiToken{
       access_key:    SecureRandom.hex(20),
       secret_key:    SecureRandom.hex(20),
-      expire_at:     DateTime.utc_now() |> Date.add(7),
+      expire_at:     NaiveDateTime.utc_now() |> NaiveDateTime.add(7 * 24 * 60 * 60),
       user_identity: build(:user_identity),
     }
   end
@@ -51,7 +51,7 @@ defmodule LuppiterAuth.Factory do
       provider:  "google",
       user_id:   Ecto.UUID.generate(),
       email:     Faker.Internet.email(),
-      expire_at: DateTime.utc_now() |> Date.add(7),
+      expire_at: NaiveDateTime.utc_now() |> NaiveDateTime.add(7 * 24 * 60 * 60),
     }
   end
 end

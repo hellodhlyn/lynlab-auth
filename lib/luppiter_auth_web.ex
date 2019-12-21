@@ -22,7 +22,10 @@ defmodule LuppiterAuthWeb do
       use Phoenix.Controller, namespace: LuppiterAuthWeb
 
       import Plug.Conn
+      import Ecto.Query, only: [from: 2]
       import LuppiterAuthWeb.Gettext
+      import LuppiterAuthWeb.Authenticator
+
       alias LuppiterAuthWeb.Router.Helpers, as: Routes
     end
   end
