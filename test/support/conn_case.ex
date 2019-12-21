@@ -21,6 +21,7 @@ defmodule LuppiterAuthWeb.ConnCase do
     quote do
       # Import conveniences for testing with connections
       use Phoenix.ConnTest
+      alias LuppiterAuth.Repo
       alias LuppiterAuthWeb.Router.Helpers, as: Routes
       import Mock
       import LuppiterAuth.Factory

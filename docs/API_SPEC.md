@@ -63,6 +63,7 @@
 - POST /v1/accounts/google
 - POST /v1/api_tokens/google
 - GET /v1/applications
+- GET /v1/applications/:app_id
 - POST /v1/applications
 - POST /v1/applications/authorization
 - GET /v1/identities/me

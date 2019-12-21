@@ -1,6 +1,8 @@
 defmodule LuppiterAuthWeb.Api.V1.ApplicationsControllerTest do
   use LuppiterAuthWeb.ConnCase
 
+  alias LuppiterAuth.Schemas.{ApiToken, Application}
+
   describe "get/2" do
     test "return application for valid app_id", %{conn: conn} do
       application = insert(:application)
@@ -39,6 +41,43 @@ defmodule LuppiterAuthWeb.Api.V1.ApplicationsControllerTest do
                  |> json_response(200)
 
       assert response |> length() == 0
+    end
+  end
+
+  describe "create/2" do
+    test "success", %{conn: conn} do
+      api_token = insert(:api_token)
+      app_name = Faker.Company.name()
+      redirect_url = Faker.Internet.domain_name()
+      response = conn
+        |> put_req_header("authorization", "Bearer " <> (api_token |> ApiToken.jwt_token()))
+        |> post(Routes.applications_path(conn, :create, %{name: app_name, redirect_url: redirect_url}))
+        |> json_response(200)
+
+      # Check response
+      assert response["name"] == app_name
+      assert response["owner"]["uuid"] == api_token.user_identity.uuid
+
+      # Check saved data
+      application = Repo.get_by(Application, uuid: response["app_id"])
+      assert application != nil
+      assert application.name == app_name
+      assert application.redirect_url == redirect_url
+    end
+
+    test "error for duplicated name", %{conn: conn} do
+      application = insert(:application)
+      conn
+        |> put_req_header("authorization", "Bearer " <> (insert(:api_token) |> ApiToken.jwt_token()))
+        |> post(Routes.applications_path(conn, :create, %{name: application.name}))
+        |> json_response(400)
+    end
+
+    test "the name should be longer than 3 chars", %{conn: conn} do
+      conn
+        |> put_req_header("authorization", "Bearer " <> (insert(:api_token) |> ApiToken.jwt_token()))
+        |> post(Routes.applications_path(conn, :create, %{name: "aaa"}))
+        |> json_response(400)
     end
   end
 end

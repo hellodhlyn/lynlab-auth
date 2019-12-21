@@ -44,6 +44,7 @@ defmodule LuppiterAuth.MixProject do
       {:google_api_o_auth2, "~> 0.4.0"},  # KEEP THIS; 0.5.0 brokes feature.
       {:goth, "~> 1.1.0"},
       {:secure_random, "~> 0.5"},
+      {:joken, "~> 2.0"},
 
       # Test
       {:ex_machina, "~> 2.3", only: :test},

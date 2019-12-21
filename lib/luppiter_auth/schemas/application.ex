@@ -1,5 +1,6 @@
 defmodule LuppiterAuth.Schemas.Application do
   use LuppiterAuth.Schema
+  import Ecto.Changeset
 
   alias LuppiterAuth.Schemas.UserIdentity
 
@@ -11,6 +12,14 @@ defmodule LuppiterAuth.Schemas.Application do
     belongs_to :owner, UserIdentity
 
     timestamps()
+  end
+
+  def changeset(%__MODULE__{} = obj, params \\ %{}) do
+    obj
+    |> cast(params, [:uuid, :name, :redirect_url])
+    |> validate_length(:name, min: 4)
+    |> unique_constraint(:uuid, name: :applications_uuid_index)
+    |> unique_constraint(:name, name: :applications_name_index)
   end
 
   defimpl Jason.Encoder, for: [__MODULE__] do

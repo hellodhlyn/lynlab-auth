@@ -15,6 +15,8 @@ defmodule LuppiterAuthWeb.Router do
     scope "/v1", V1 do
       get "/applications", ApplicationsController, :list
       get "/applications/:app_id", ApplicationsController, :get
+      post "/applications", ApplicationsController, :create
+
       post "/accounts/google", AccountsController, :create_by_google
     end
   end
