@@ -18,5 +18,7 @@ defmodule LuppiterAuthWeb.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
 
+  plug CORSPlug, origin: (System.get_env("ALLOWED_ORIGINGS", "http://localhost:3000") |> String.split())
+
   plug LuppiterAuthWeb.Router
 end

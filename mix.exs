@@ -45,6 +45,7 @@ defmodule LuppiterAuth.MixProject do
       {:goth, "~> 1.1.0"},
       {:secure_random, "~> 0.5"},
       {:joken, "~> 2.0"},
+      {:cors_plug, "~> 2.0"},
 
       # Test
       {:ex_machina, "~> 2.3", only: :test},
