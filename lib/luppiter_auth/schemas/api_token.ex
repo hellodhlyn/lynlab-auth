@@ -1,7 +1,11 @@
 defmodule LuppiterAuth.Schemas.ApiToken do
   use LuppiterAuth.Schema
 
-  alias LuppiterAuth.Schemas.UserIdentity
+  import Ecto.Changeset
+  import Ecto.Query, only: [from: 2]
+
+  alias LuppiterAuth.Repo
+  alias LuppiterAuth.Schemas.{UserIdentity, Application}
 
   @type t :: %__MODULE__{
     :access_key => String.t(),
@@ -15,8 +19,41 @@ defmodule LuppiterAuth.Schemas.ApiToken do
     field :expire_at,  :naive_datetime
 
     belongs_to :user_identity, UserIdentity
+    belongs_to :application, Application
 
     timestamps()
+  end
+
+  defimpl Jason.Encoder, for: [__MODULE__] do
+    def encode(struct, opts) do
+      Jason.Encode.map(%{
+        access_key: struct.access_key,
+        secret_key: struct.secret_key,
+        expire_at: struct.expire_at,
+      }, opts)
+    end
+  end
+
+  def changeset(%__MODULE__{} = obj, params \\ %{}) do
+    obj
+    |> cast(params, [:access_key, :secret_key, :expire_at])
+    |> unique_constraint(:access_key, name: :api_tokens_access_key)
+  end
+
+  @spec create!(UserIdentity.t(), Application.t()) :: t()
+  def create!(user_identity, application) do
+    expire_at = NaiveDateTime.utc_now() |> NaiveDateTime.add(7 * 24 * 60 * 60)
+
+    %__MODULE__{}
+    |> changeset(%{access_key: SecureRandom.hex(20), secret_key: SecureRandom.hex(20), expire_at: expire_at})
+    |> Ecto.Changeset.put_assoc(:user_identity, user_identity)
+    |> Ecto.Changeset.put_assoc(:application, application)
+    |> Repo.insert()
+  end
+
+  @spec find_by_access_key(String.t(), list(atom())) :: t()
+  def find_by_access_key(access_key, preload \\ []) do
+    Repo.one(from t in __MODULE__, where: t.access_key == ^access_key, preload: ^preload)
   end
 
   @spec jwt_token(t) :: String.t()

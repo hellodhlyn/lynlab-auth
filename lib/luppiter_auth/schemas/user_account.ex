@@ -1,6 +1,8 @@
 defmodule LuppiterAuth.Schemas.UserAccount do
   use LuppiterAuth.Schema
 
+  import Ecto.Query, only: [from: 2]
+
   alias LuppiterAuth.Repo
   alias LuppiterAuth.Schemas.UserIdentity
 
@@ -33,5 +35,9 @@ defmodule LuppiterAuth.Schemas.UserAccount do
   @spec exists_by?(Keyword.t()) :: boolean()
   def exists_by?(query) do
     Repo.get_by(__MODULE__, query) != nil
+  end
+
+  def find_by_provider_id(provider, provider_id, preload \\ []) do
+    Repo.one(from a in __MODULE__, where: a.provider == ^provider and a.provider_id == ^provider_id, preload: ^preload)
   end
 end

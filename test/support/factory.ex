@@ -10,6 +10,7 @@ defmodule LuppiterAuth.Factory do
       access_key:    SecureRandom.hex(20),
       secret_key:    SecureRandom.hex(20),
       expire_at:     NaiveDateTime.utc_now() |> NaiveDateTime.add(7 * 24 * 60 * 60),
+      application:   build(:application),
       user_identity: build(:user_identity),
     }
   end

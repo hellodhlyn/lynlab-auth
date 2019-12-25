@@ -1,5 +1,6 @@
 defmodule LuppiterAuthWeb.Api.V1.AccountsControllerTest do
   use LuppiterAuthWeb.ConnCase
+  alias LuppiterAuthWeb.Errors
 
   describe "create_with_google/2" do
     test "200 for valid id token", %{conn: conn} do
@@ -27,11 +28,11 @@ defmodule LuppiterAuthWeb.Api.V1.AccountsControllerTest do
 
     test "400 for invalid id token", %{conn: conn} do
       with_mock LuppiterAuth.Providers.Google, [authenticate: fn(_) -> {:error, "invalid"} end] do
-        response = conn
-                   |> post(Routes.accounts_path conn, :create_by_google)
-                   |> text_response(400)
-
-        assert response == "invalid_provider_id"
+        assert_raise Errors.InvalidProviderIdError, fn ->
+          conn
+            |> post(Routes.accounts_path conn, :create_by_google)
+            |> text_response(400)
+        end
       end
     end
   end

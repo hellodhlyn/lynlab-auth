@@ -1,7 +1,7 @@
 defmodule LuppiterAuthWeb.Api.V1.ApplicationsControllerTest do
   use LuppiterAuthWeb.ConnCase
 
-  alias LuppiterAuth.Schemas.{ApiToken, Application}
+  alias LuppiterAuth.Schemas.{ApiToken, Application, AppAuthorization}
 
   describe "get/2" do
     test "return application for valid app_id", %{conn: conn} do
@@ -78,6 +78,21 @@ defmodule LuppiterAuthWeb.Api.V1.ApplicationsControllerTest do
         |> put_req_header("authorization", "Bearer " <> (insert(:api_token) |> ApiToken.jwt_token()))
         |> post(Routes.applications_path(conn, :create, %{name: "aaa"}))
         |> json_response(400)
+    end
+  end
+
+  describe "authorize_application/2" do
+    test "success", %{conn: conn} do
+      api_token = insert(:api_token)
+      application = insert(:application)
+
+      conn
+        |> put_req_header("authorization", "Bearer " <> (api_token |> ApiToken.jwt_token()))
+        |> post(Routes.applications_path(conn, :authorize_application, %{app_id: application.uuid}))
+        |> json_response(200)
+
+      auth = Repo.get_by(AppAuthorization, application_id: application.id, user_identity_id: api_token.user_identity.id)
+      assert auth != nil
     end
   end
 end

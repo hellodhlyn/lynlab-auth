@@ -6,11 +6,9 @@
 
 ```jsonc
 {
-  "identity": {},  //UserIdentity object
-  "application": {},  // Application object
-  "accessKey": "string",
-  "secretKey": "string",
-  "expireAt": "datetime",
+  "access_key": "string",
+  "secret_key": "string",
+  "expire_at": "datetime",
 }
 ```
 
@@ -28,15 +26,6 @@
 }
 ```
 
-### AppAuthorization
-
-```jsonc
-{
-  "app": {},  // Application object
-  "userIdentity": {}  // UserIdentity object
-}
-```
-
 ### UserIdentity
 
 ```jsonc
@@ -45,16 +34,6 @@
   "username": "string",
   "email": "string",
   "created_at": "datetime"
-}
-```
-
-### UserAccount
-
-```jsonc
-{
-  "identity": {},  // UserIdentity object
-  "provider": "string",  // "google"
-  "providerId": "string"
 }
 ```
 

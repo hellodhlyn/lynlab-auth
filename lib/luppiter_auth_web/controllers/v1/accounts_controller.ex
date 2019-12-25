@@ -4,12 +4,13 @@ defmodule LuppiterAuthWeb.Api.V1.AccountsController do
   require Logger
 
   alias LuppiterAuth.Schemas.UserAccount
+  alias LuppiterAuthWeb.Errors
 
   def create_by_google(conn, params) do
     case LuppiterAuth.Providers.Google.authenticate(params["id_token"]) do
       {:error, reason} ->
         Logger.warn("Failed to get Google user info: #{reason}")
-        conn |> put_status(400) |> text("invalid_provider_id")
+        raise Errors.InvalidProviderIdError
 
       {:ok, info} ->
         case UserAccount.create_from_user_info(info, params["username"]) do

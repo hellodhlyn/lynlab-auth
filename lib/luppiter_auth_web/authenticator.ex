@@ -1,8 +1,6 @@
 defmodule LuppiterAuthWeb.Authenticator do
   import Plug.Conn
-  import Ecto.Query, only: [from: 2]
 
-  alias LuppiterAuth.Repo
   alias LuppiterAuth.Schemas.ApiToken
   alias LuppiterAuthWeb.Errors.UnauthorizedError
 
@@ -16,7 +14,7 @@ defmodule LuppiterAuthWeb.Authenticator do
 
     api_token = case Joken.peek_claims(bearer_token) do
       {:error, _} -> raise UnauthorizedError
-      {:ok, claim} -> Repo.one(from t in ApiToken, where: t.access_key == ^claim["access_key"], preload: [:user_identity])
+      {:ok, claim} -> ApiToken.find_by_access_key(claim["access_key"], [:user_identity])
     end
     if api_token == nil or api_token |> ApiToken.expired?() do
       raise UnauthorizedError
