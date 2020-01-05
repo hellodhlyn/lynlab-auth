@@ -36,10 +36,11 @@ defmodule LuppiterAuthWeb.Api.V1.ApplicationsController do
   # GET /v1/applications/:app_id/authorization
   def get_app_authorization(conn, params) do
     identity = authenticate(conn)
+    app = Application.find_by_uuid(params["app_id"])
     authorized = (
       Repo.one(
         from a in AppAuthorization,
-        where: a.application_id == ^params["app_id"] and a.user_identity_id == ^identity.id
+        where: a.application_id == ^app.id and a.user_identity_id == ^identity.id
       ) != nil
     )
 

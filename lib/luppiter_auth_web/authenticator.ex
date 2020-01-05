@@ -14,7 +14,11 @@ defmodule LuppiterAuthWeb.Authenticator do
 
     api_token = case Joken.peek_claims(bearer_token) do
       {:error, _} -> raise UnauthorizedError
-      {:ok, claim} -> ApiToken.find_by_access_key(claim["access_key"], [:user_identity, :application])
+      {:ok, claim} ->
+        if claim["access_key"] == nil do
+          raise UnauthorizedError
+        end
+        ApiToken.find_by_access_key(claim["access_key"], [:user_identity, :application])
     end
     if api_token == nil or api_token |> ApiToken.expired?() do
       raise UnauthorizedError

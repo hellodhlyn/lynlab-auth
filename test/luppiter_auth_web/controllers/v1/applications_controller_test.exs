@@ -88,7 +88,7 @@ defmodule LuppiterAuthWeb.Api.V1.ApplicationsControllerTest do
 
       response = conn
         |> put_req_header("authorization", "Bearer " <> (api_token |> ApiToken.jwt_token()))
-        |> get(Routes.applications_path(conn, :get_app_authorization, api_token.application.id))
+        |> get(Routes.applications_path(conn, :get_app_authorization, api_token.application.uuid))
         |> json_response(200)
 
       assert response["authorized"] == true

@@ -29,6 +29,14 @@ defmodule LuppiterAuthWeb.AuthenticatorTest do
       assert_raise UnauthorizedError, fn -> conn |> authenticate() end
     end
 
+    test "error if access_key not exists", %{conn: conn} do
+      assert_raise UnauthorizedError, fn ->
+        conn
+        |> put_req_header("authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXkiOiJ2YWx1ZSJ9.zkzeR-UmX0YqWd6JCmHeEurVIzu3l_LxRlMbvA9Qw-I")
+        |> authenticate()
+      end
+    end
+
     test "error if invalid api token", %{conn: conn} do
       assert_raise UnauthorizedError, fn ->
         conn
