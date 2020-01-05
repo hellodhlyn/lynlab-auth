@@ -33,8 +33,21 @@ defmodule LuppiterAuthWeb.Api.V1.ApplicationsController do
     end
   end
 
-  # POST /v1/applications/authorizations
-  def authorize_application(conn, params) do
+  # GET /v1/applications/:app_id/authorization
+  def get_app_authorization(conn, params) do
+    identity = authenticate(conn)
+    authorized = (
+      Repo.one(
+        from a in AppAuthorization,
+        where: a.application_id == ^params["app_id"] and a.user_identity_id == ^identity.id
+      ) != nil
+    )
+
+    conn |> json(%{authorized: authorized})
+  end
+
+  # POST /v1/applications/:app_id/authorization
+  def create_app_authorization(conn, params) do
     %AppAuthorization{}
     |> AppAuthorization.changeset(%{})
     |> Ecto.Changeset.put_assoc(:application, Application.find_by_uuid(params["app_id"]))

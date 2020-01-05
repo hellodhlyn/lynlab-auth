@@ -44,7 +44,8 @@
 - GET /v1/applications
 - GET /v1/applications/:app_id
 - POST /v1/applications
-- POST /v1/applications/authorization
+- GET /v1/applications/:app_id/authorization
+- POST /v1/applications/:app_id/authorization
 - GET /v1/identities/me
 
 ### POST /v1/accounts/google
@@ -102,14 +103,27 @@ Authentication required.
     * 201 Created
     * 400 Bad Request (duplicated_names)
 
-### POST /v1/applications/authorizations
+### GET /v1/applications/:app_id/authorization
+
+Authentication required.
+
+* Returns
+    * 200 OK
+    ```jsonc
+    {
+      "authorized": true
+    }
+    ```
+    * 401 Unauthorized
+
+### POST /v1/applications/:app_id/authorization
 
 Authentication required.
 
 * Request Body
     ```jsonc
     {
-      "app_id": "string"
+      "authorized": true
     }
     ```
 * Returns

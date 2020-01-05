@@ -81,14 +81,28 @@ defmodule LuppiterAuthWeb.Api.V1.ApplicationsControllerTest do
     end
   end
 
-  describe "authorize_application/2" do
+  describe "get_app_authorization/2" do
+    test "success: authorized", %{conn: conn} do
+      api_token = insert(:api_token)
+      insert(:app_authorization, %{application: api_token.application, user_identity: api_token.user_identity})
+
+      response = conn
+        |> put_req_header("authorization", "Bearer " <> (api_token |> ApiToken.jwt_token()))
+        |> get(Routes.applications_path(conn, :get_app_authorization, api_token.application.id))
+        |> json_response(200)
+
+      assert response["authorized"] == true
+    end
+  end
+
+  describe "create_app_authorization/2" do
     test "success", %{conn: conn} do
       api_token = insert(:api_token)
       application = insert(:application)
 
       conn
         |> put_req_header("authorization", "Bearer " <> (api_token |> ApiToken.jwt_token()))
-        |> post(Routes.applications_path(conn, :authorize_application, %{app_id: application.uuid}))
+        |> post(Routes.applications_path(conn, :create_app_authorization, application.uuid))
         |> json_response(200)
 
       auth = Repo.get_by(AppAuthorization, application_id: application.id, user_identity_id: api_token.user_identity.id)

@@ -3,7 +3,7 @@ defmodule LuppiterAuthWeb.Api.V1.ApiTokensController do
 
   require Logger
 
-  alias LuppiterAuth.Schemas.{UserAccount, Application, ApiToken, AppAuthorization}
+  alias LuppiterAuth.Schemas.{UserAccount, Application, ApiToken}
   alias LuppiterAuthWeb.Errors
 
   # POST /v1/api_tokens/google
@@ -17,12 +17,11 @@ defmodule LuppiterAuthWeb.Api.V1.ApiTokensController do
         case UserAccount.find_by_provider_id("google", info.user_id, [:user_identity]) do
           nil -> raise Errors.UnauthorizedError
           account ->
-            app = Application.find_by_uuid(params["app_id"])
-            if AppAuthorization.find_by_user_identity_and_application(account.user_identity, app) != nil do
-              {:ok, token} = ApiToken.create!(account.user_identity, app)
-              conn |> json(token)
-            else
-              raise Errors.UnauthorizedApplicationError
+            case Application.find_by_uuid(params["app_id"]) do
+              nil -> raise Errors.UnauthorizedApplicationError
+              app ->
+                {:ok, token} = ApiToken.create!(account.user_identity, app)
+                conn |> json(token)
             end
         end
     end

@@ -6,7 +6,25 @@ defmodule LuppiterAuthWeb.AuthenticatorTest do
   alias LuppiterAuth.Schemas.ApiToken
   alias LuppiterAuthWeb.Errors.UnauthorizedError
 
-  describe "authenticate/1" do
+  describe "authenticate/2" do
+    test "success for valid api token", %{conn: conn} do
+      api_token = insert(:api_token)
+      identity = conn
+                 |> put_req_header("authorization", "Bearer " <> (api_token |> ApiToken.jwt_token()))
+                 |> authenticate()
+
+      assert identity.id == api_token.user_identity.id
+    end
+
+    test "success for valid api token and app id", %{conn: conn} do
+      api_token = insert(:api_token)
+      identity = conn
+                 |> put_req_header("authorization", "Bearer " <> (api_token |> ApiToken.jwt_token()))
+                 |> authenticate(api_token.application.uuid)
+
+      assert identity.id == api_token.user_identity.id
+    end
+
     test "error if token not exists", %{conn: conn} do
       assert_raise UnauthorizedError, fn -> conn |> authenticate() end
     end
@@ -28,14 +46,13 @@ defmodule LuppiterAuthWeb.AuthenticatorTest do
       end
     end
 
-    test "success for valid api token", %{conn: conn} do
-      src_identity = insert(:user_identity)
-      api_token = insert(:api_token, %{user_identity: src_identity})
-      identity = conn
-                 |> put_req_header("authorization", "Bearer " <> (api_token |> ApiToken.jwt_token()))
-                 |> authenticate()
-
-      assert identity.id == src_identity.id
+    test "error if app id not matched", %{conn: conn} do
+      api_token = insert(:api_token)
+      assert_raise UnauthorizedError, fn ->
+        conn
+        |> put_req_header("authorization", "Bearer " <> (api_token |> ApiToken.jwt_token()))
+        |> authenticate(Ecto.UUID.generate())
+      end
     end
   end
 end

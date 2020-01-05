@@ -18,7 +18,8 @@ defmodule LuppiterAuthWeb.Router do
       get "/applications", ApplicationsController, :list
       get "/applications/:app_id", ApplicationsController, :get
       post "/applications", ApplicationsController, :create
-      post "/applications/authorizations", ApplicationsController, :authorize_application
+      get "/application/:app_id/authorization", ApplicationsController, :get_app_authorization
+      post "/applications/:app_id/authorization", ApplicationsController, :create_app_authorization
 
       post "/accounts/google", AccountsController, :create_by_google
     end
