@@ -2,7 +2,7 @@ defmodule LuppiterAuthWeb.Api.V1.ApplicationsController do
   use LuppiterAuthWeb, :controller
 
   alias LuppiterAuth.Repo
-  alias LuppiterAuth.Schemas.{AppAuthorization, Application, UserIdentity}
+  alias LuppiterAuth.Schemas.{AppAuthorization, Application}
 
   # GET /v1/applications/:app_id
   def get(conn, params) do
@@ -10,15 +10,9 @@ defmodule LuppiterAuthWeb.Api.V1.ApplicationsController do
   end
 
   # GET /v1/applications
-  def list(conn, params) do
-    case params["owner_id"] do
-      nil      -> conn |> json([])
-      owner_id ->
-        case Repo.get_by(UserIdentity, uuid: owner_id) do
-          nil   -> conn |> json([])
-          owner -> conn |> json(Repo.all(from a in Application, where: a.owner_id == ^owner.id, preload: [:owner]))
-        end
-    end
+  def list(conn, _) do
+    identity = authenticate(conn)
+    conn |> json(Repo.all(from a in Application, where: a.owner_id == ^identity.id, preload: [:owner]))
   end
 
   # POST /v1/applications

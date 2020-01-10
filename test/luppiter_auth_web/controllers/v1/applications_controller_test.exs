@@ -23,11 +23,13 @@ defmodule LuppiterAuthWeb.Api.V1.ApplicationsControllerTest do
   end
 
   describe "list/2" do
-    test "return applications for valid owner_id", %{conn: conn} do
+    test "return applications for valid owner", %{conn: conn} do
       owner = insert(:user_identity)
+      api_token = insert(:api_token, %{user_identity: owner})
       Enum.map(1..3, fn _ -> insert(:application, %{owner: owner}) end)
 
       response = conn
+                 |> put_req_header("authorization", "Bearer " <> (api_token |> ApiToken.jwt_token()))
                  |> get(Routes.applications_path(conn, :list, %{owner_id: owner.uuid}))
                  |> json_response(200)
 
@@ -35,8 +37,10 @@ defmodule LuppiterAuthWeb.Api.V1.ApplicationsControllerTest do
       Enum.map(response, fn i -> assert i["owner"]["uuid"] == owner.uuid end)
     end
 
-    test "return empty list for invalid owner_id", %{conn: conn} do
+    test "return empty list if there is no apps", %{conn: conn} do
+      api_token = insert(:api_token)
       response = conn
+                 |> put_req_header("authorization", "Bearer " <> (api_token |> ApiToken.jwt_token()))
                  |> get(Routes.applications_path(conn, :list, %{owner_id: Ecto.UUID.generate()}))
                  |> json_response(200)
 
