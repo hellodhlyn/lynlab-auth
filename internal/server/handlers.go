@@ -25,6 +25,10 @@ func (s *Server) beginRegister(w http.ResponseWriter, r *http.Request, p httprou
 		s.respondJSON(w, nil, http.StatusInternalServerError)
 		return
 	}
+	if len(user.Credentials) != 0 {
+		s.respondJSON(w, map[string]string{"error": "User already exists"}, http.StatusBadRequest)
+		return
+	}
 
 	err = datastore.SaveUser(r.Context(), s.redis, user)
 	if err != nil {
@@ -43,9 +47,9 @@ func (s *Server) beginRegister(w http.ResponseWriter, r *http.Request, p httprou
 	s.respondJSON(w, creation)
 }
 
-func (s *Server) finishRegister(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (s *Server) finishRegister(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	session := s.sessionStore[registrationSessionKey].(webauthn.SessionData)
-	user, err := datastore.GetOrCreateUser(r.Context(), s.redis, string(session.UserID))
+	user, err := datastore.GetOrCreateUser(r.Context(), s.redis, p.ByName("name"))
 	if err != nil {
 		fmt.Println(err)
 		s.respondJSON(w, nil, http.StatusInternalServerError)
@@ -96,9 +100,9 @@ func (s *Server) beginLogin(w http.ResponseWriter, r *http.Request, p httprouter
 	s.respondJSON(w, assertion)
 }
 
-func (s *Server) finishLogin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	session := s.sessionStore[registrationSessionKey].(webauthn.SessionData)
-	user, err := datastore.GetOrCreateUser(r.Context(), s.redis, string(session.UserID))
+func (s *Server) finishLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	session := s.sessionStore[loginSessionKey].(webauthn.SessionData)
+	user, err := datastore.GetOrCreateUser(r.Context(), s.redis, p.ByName("name"))
 	if err != nil {
 		fmt.Println(err)
 		s.respondJSON(w, nil, http.StatusInternalServerError)

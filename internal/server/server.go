@@ -7,6 +7,7 @@ import (
 	"github.com/hellodhlyn/lynlab-auth/internal/connection"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
+	"os"
 )
 
 type Server struct {
@@ -19,7 +20,8 @@ type Server struct {
 func NewServer() *Server {
 	webAuthn, _ := webauthn.New(&webauthn.Config{
 		RPDisplayName: "LYnLab",
-		RPID:          "lynlab.co.kr",
+		RPID:          os.Getenv("RELYING_PARTY_ID"),
+		RPOrigin:      os.Getenv("RELYING_PARTY_ORIGIN"),
 	})
 	router := httprouter.New()
 	redisClient := connection.NewRedisClient()
@@ -32,9 +34,20 @@ func NewServer() *Server {
 
 	router.GET("/ping", server.ping)
 	router.GET("/registration/:name", server.beginRegister)
-	router.POST("/registration", server.finishRegister)
+	router.POST("/registration/:name", server.finishRegister)
 	router.GET("/assertion/:name", server.beginLogin)
-	router.POST("/assertion", server.finishLogin)
+	router.POST("/assertion/:name", server.finishLogin)
+
+	// Set CORS
+	router.GlobalOPTIONS = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Access-Control-Request-Method") != "" {
+			header := w.Header()
+			header.Set("Access-Control-Allow-Methods", header.Get("Allow"))
+			header.Set("Access-Control-Allow-Headers", "*")
+			header.Set("Access-Control-Allow-Origin", "*")
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})
 
 	return server
 }
