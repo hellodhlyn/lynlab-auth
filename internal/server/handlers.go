@@ -3,15 +3,9 @@ package server
 import (
 	"fmt"
 	"github.com/duo-labs/webauthn/protocol"
-	"github.com/duo-labs/webauthn/webauthn"
 	"github.com/hellodhlyn/lynlab-auth/internal/datastore"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
-)
-
-const (
-	registrationSessionKey = "registration-session"
-	loginSessionKey        = "login-session"
 )
 
 func (s *Server) ping(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
@@ -42,14 +36,13 @@ func (s *Server) beginRegister(w http.ResponseWriter, r *http.Request, p httprou
 		return
 	}
 
-	// TODO - external session storage
-	s.sessionStore[registrationSessionKey] = *session
+	datastore.StoreSession(r.Context(), s.redis, s.getRegistrationSessionKey(user.Name), session)
 	s.respondJSON(w, creation)
 }
 
 func (s *Server) finishRegister(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	session := s.sessionStore[registrationSessionKey].(webauthn.SessionData)
 	user, err := datastore.GetOrCreateUser(r.Context(), s.redis, p.ByName("name"))
+	session := datastore.GetSession(r.Context(), s.redis, s.getRegistrationSessionKey(user.Name))
 	if err != nil {
 		fmt.Println(err)
 		s.respondJSON(w, nil, http.StatusInternalServerError)
@@ -63,7 +56,7 @@ func (s *Server) finishRegister(w http.ResponseWriter, r *http.Request, p httpro
 		return
 	}
 
-	credential, err := s.webAuthn.CreateCredential(user, session, parsedResponse)
+	credential, err := s.webAuthn.CreateCredential(user, *session, parsedResponse)
 	if err != nil {
 		fmt.Println(err)
 		s.respondJSON(w, nil, http.StatusInternalServerError)
@@ -96,13 +89,13 @@ func (s *Server) beginLogin(w http.ResponseWriter, r *http.Request, p httprouter
 	}
 
 	// TODO - external session storage
-	s.sessionStore[loginSessionKey] = *session
+	datastore.StoreSession(r.Context(), s.redis, s.getAssertionSessionKey(user.Name), session)
 	s.respondJSON(w, assertion)
 }
 
 func (s *Server) finishLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	session := s.sessionStore[loginSessionKey].(webauthn.SessionData)
 	user, err := datastore.GetOrCreateUser(r.Context(), s.redis, p.ByName("name"))
+	session := datastore.GetSession(r.Context(), s.redis, s.getAssertionSessionKey(user.Name))
 	if err != nil {
 		fmt.Println(err)
 		s.respondJSON(w, nil, http.StatusInternalServerError)
@@ -116,7 +109,7 @@ func (s *Server) finishLogin(w http.ResponseWriter, r *http.Request, p httproute
 		return
 	}
 
-	_, err = s.webAuthn.ValidateLogin(user, session, parsedResponse)
+	_, err = s.webAuthn.ValidateLogin(user, *session, parsedResponse)
 	if err != nil {
 		fmt.Println(err)
 		s.respondJSON(w, nil, http.StatusInternalServerError)
@@ -124,4 +117,12 @@ func (s *Server) finishLogin(w http.ResponseWriter, r *http.Request, p httproute
 	}
 
 	s.respondJSON(w, user)
+}
+
+func (s *Server) getRegistrationSessionKey(username string) string {
+	return fmt.Sprintf("auth.session.registration.%s", username)
+}
+
+func (s *Server) getAssertionSessionKey(username string) string {
+	return fmt.Sprintf("auth.session.assertion.%s", username)
 }
