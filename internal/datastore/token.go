@@ -13,15 +13,13 @@ const (
 )
 
 type AccessKeyClaims struct {
-	UserUUID string `json:"uuid"`
-	Username string `json:"username"`
+	UserID string `json:"id"`
 	jwt.RegisteredClaims
 }
 
 func GenerateAccessKey(user *User) (string, error) {
 	claims := AccessKeyClaims{
 		user.ID,
-		user.Name,
 		jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenValidHours * time.Hour)),
@@ -41,7 +39,7 @@ func ValidateAccessKey(key string) (string, error) {
 	}
 
 	if claims, ok := token.Claims.(*AccessKeyClaims); ok && token.Valid {
-		return claims.Username, nil
+		return claims.UserID, nil
 	}
 	return "", errors.New("invalid token")
 }

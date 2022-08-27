@@ -14,7 +14,7 @@ func (s *Server) ping(w http.ResponseWriter, _ *http.Request, _ httprouter.Param
 }
 
 func (s *Server) beginRegister(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	user, err := datastore.GetOrCreateUser(r.Context(), s.redis, p.ByName("name"))
+	user, err := datastore.GetOrCreateUserByName(r.Context(), s.redis, p.ByName("name"))
 	if err != nil {
 		fmt.Println(err)
 		s.respondJSON(w, nil, http.StatusInternalServerError)
@@ -37,13 +37,13 @@ func (s *Server) beginRegister(w http.ResponseWriter, r *http.Request, p httprou
 		return
 	}
 
-	datastore.StoreSession(r.Context(), s.redis, s.getRegistrationSessionKey(user.Name), session)
+	datastore.StoreSession(r.Context(), s.redis, s.getRegistrationSessionKey(user.ID), session)
 	s.respondJSON(w, creation)
 }
 
 func (s *Server) finishRegister(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	user, err := datastore.GetOrCreateUser(r.Context(), s.redis, p.ByName("name"))
-	session := datastore.GetSession(r.Context(), s.redis, s.getRegistrationSessionKey(user.Name))
+	user, err := datastore.GetOrCreateUserByName(r.Context(), s.redis, p.ByName("name"))
+	session := datastore.GetSession(r.Context(), s.redis, s.getRegistrationSessionKey(user.ID))
 	if err != nil {
 		fmt.Println(err)
 		s.respondJSON(w, nil, http.StatusInternalServerError)
@@ -71,7 +71,7 @@ func (s *Server) finishRegister(w http.ResponseWriter, r *http.Request, p httpro
 }
 
 func (s *Server) beginLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	user, err := datastore.GetOrCreateUser(r.Context(), s.redis, p.ByName("name"))
+	user, err := datastore.GetOrCreateUserByName(r.Context(), s.redis, p.ByName("name"))
 	if err != nil {
 		fmt.Println(err)
 		s.respondJSON(w, nil, http.StatusInternalServerError)
@@ -89,13 +89,13 @@ func (s *Server) beginLogin(w http.ResponseWriter, r *http.Request, p httprouter
 		return
 	}
 
-	datastore.StoreSession(r.Context(), s.redis, s.getAssertionSessionKey(user.Name), session)
+	datastore.StoreSession(r.Context(), s.redis, s.getAssertionSessionKey(user.ID), session)
 	s.respondJSON(w, assertion)
 }
 
 func (s *Server) finishLogin(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	user, err := datastore.GetOrCreateUser(r.Context(), s.redis, p.ByName("name"))
-	session := datastore.GetSession(r.Context(), s.redis, s.getAssertionSessionKey(user.Name))
+	user, err := datastore.GetOrCreateUserByName(r.Context(), s.redis, p.ByName("name"))
+	session := datastore.GetSession(r.Context(), s.redis, s.getAssertionSessionKey(user.ID))
 	if err != nil {
 		fmt.Println(err)
 		s.respondJSON(w, nil, http.StatusInternalServerError)
@@ -133,30 +133,26 @@ func (s *Server) whoAmI(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 		return
 	}
 
-	username, err := datastore.ValidateAccessKey(splits[1])
+	userID, err := datastore.ValidateAccessKey(splits[1])
 	if err != nil {
 		fmt.Println(err)
 		s.respondJSON(w, nil, http.StatusUnauthorized)
 		return
 	}
 
-	user, err := datastore.GetOrCreateUser(r.Context(), s.redis, username)
+	profile, err := datastore.GetUserProfile(r.Context(), s.redis, userID)
 	if err != nil {
 		fmt.Println(err)
 		s.respondJSON(w, nil, http.StatusInternalServerError)
 		return
 	}
-	s.respondJSON(w, map[string]string{
-		"id":          user.ID,
-		"name":        user.Name,
-		"displayName": user.DisplayName,
-	})
+	s.respondJSON(w, profile)
 }
 
-func (s *Server) getRegistrationSessionKey(username string) string {
-	return fmt.Sprintf("auth.session.registration.%s", username)
+func (s *Server) getRegistrationSessionKey(id string) string {
+	return fmt.Sprintf("auth.session.registration.%s", id)
 }
 
-func (s *Server) getAssertionSessionKey(username string) string {
-	return fmt.Sprintf("auth.session.assertion.%s", username)
+func (s *Server) getAssertionSessionKey(id string) string {
+	return fmt.Sprintf("auth.session.assertion.%s", id)
 }
