@@ -14,6 +14,15 @@ type UserProfile struct {
 	ProfileImage string `json:"profileImage"`
 }
 
+func (p *UserProfile) Update(src *UserProfile) {
+	if src.DisplayName != "" {
+		p.DisplayName = src.DisplayName
+	}
+	if src.ProfileImage != "" {
+		p.ProfileImage = src.ProfileImage
+	}
+}
+
 func NewUserProfile(id, name string) UserProfile {
 	return UserProfile{
 		UserID:       id,

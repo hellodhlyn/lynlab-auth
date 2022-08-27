@@ -38,6 +38,7 @@ func NewServer() *Server {
 	router.GET("/assertion/:name", server.beginLogin)
 	router.POST("/assertion/:name", server.finishLogin)
 	router.GET("/whoami", server.whoAmI)
+	router.PATCH("/whoami", server.updateProfile)
 
 	// Set CORS
 	router.GlobalOPTIONS = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

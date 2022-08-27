@@ -1,6 +1,8 @@
 package server
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/duo-labs/webauthn/protocol"
 	"github.com/hellodhlyn/lynlab-auth/internal/datastore"
@@ -127,13 +129,7 @@ func (s *Server) finishLogin(w http.ResponseWriter, r *http.Request, p httproute
 }
 
 func (s *Server) whoAmI(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	splits := strings.Split(r.Header.Get("Authorization"), " ")
-	if len(splits) != 2 || splits[0] != "Bearer" {
-		s.respondJSON(w, nil, http.StatusUnauthorized)
-		return
-	}
-
-	userID, err := datastore.ValidateAccessKey(splits[1])
+	userID, err := s.getUserIDFromRequest(r)
 	if err != nil {
 		fmt.Println(err)
 		s.respondJSON(w, nil, http.StatusUnauthorized)
@@ -147,6 +143,45 @@ func (s *Server) whoAmI(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 		return
 	}
 	s.respondJSON(w, profile)
+}
+
+func (s *Server) updateProfile(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	userID, err := s.getUserIDFromRequest(r)
+	if err != nil {
+		fmt.Println(err)
+		s.respondJSON(w, nil, http.StatusUnauthorized)
+		return
+	}
+
+	profile, err := datastore.GetUserProfile(r.Context(), s.redis, userID)
+	if err != nil {
+		fmt.Println(err)
+		s.respondJSON(w, nil, http.StatusInternalServerError)
+		return
+	}
+
+	var reqProfile datastore.UserProfile
+	err = json.NewDecoder(r.Body).Decode(&reqProfile)
+	if err != nil {
+		s.respondJSON(w, nil, http.StatusUnprocessableEntity)
+		return
+	}
+
+	profile.Update(&reqProfile)
+	if err = datastore.SaveUserProfile(r.Context(), s.redis, profile); err != nil {
+		fmt.Println(err)
+		s.respondJSON(w, nil, http.StatusInternalServerError)
+		return
+	}
+	s.respondJSON(w, profile)
+}
+
+func (s *Server) getUserIDFromRequest(r *http.Request) (string, error) {
+	splits := strings.Split(r.Header.Get("Authorization"), " ")
+	if len(splits) != 2 || splits[0] != "Bearer" {
+		return "", errors.New("invalid authorization token")
+	}
+	return datastore.ValidateAccessKey(splits[1])
 }
 
 func (s *Server) getRegistrationSessionKey(id string) string {
