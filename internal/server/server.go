@@ -37,6 +37,7 @@ func NewServer() *Server {
 	router.POST("/registration/:name", server.finishRegister)
 	router.GET("/assertion/:name", server.beginLogin)
 	router.POST("/assertion/:name", server.finishLogin)
+	router.GET("/whoami", server.whoAmI)
 
 	// Set CORS
 	router.GlobalOPTIONS = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

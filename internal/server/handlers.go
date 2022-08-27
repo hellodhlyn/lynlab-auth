@@ -6,6 +6,7 @@ import (
 	"github.com/hellodhlyn/lynlab-auth/internal/datastore"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
+	"strings"
 )
 
 func (s *Server) ping(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
@@ -88,7 +89,6 @@ func (s *Server) beginLogin(w http.ResponseWriter, r *http.Request, p httprouter
 		return
 	}
 
-	// TODO - external session storage
 	datastore.StoreSession(r.Context(), s.redis, s.getAssertionSessionKey(user.Name), session)
 	s.respondJSON(w, assertion)
 }
@@ -116,7 +116,41 @@ func (s *Server) finishLogin(w http.ResponseWriter, r *http.Request, p httproute
 		return
 	}
 
-	s.respondJSON(w, user)
+	accessKey, err := datastore.GenerateAccessKey(user)
+	if err != nil {
+		fmt.Println(err)
+		s.respondJSON(w, nil, http.StatusInternalServerError)
+		return
+	}
+
+	s.respondJSON(w, map[string]string{"accessKey": accessKey}, http.StatusCreated)
+}
+
+func (s *Server) whoAmI(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	splits := strings.Split(r.Header.Get("Authorization"), " ")
+	if len(splits) != 2 || splits[0] != "Bearer" {
+		s.respondJSON(w, nil, http.StatusUnauthorized)
+		return
+	}
+
+	username, err := datastore.ValidateAccessKey(splits[1])
+	if err != nil {
+		fmt.Println(err)
+		s.respondJSON(w, nil, http.StatusUnauthorized)
+		return
+	}
+
+	user, err := datastore.GetOrCreateUser(r.Context(), s.redis, username)
+	if err != nil {
+		fmt.Println(err)
+		s.respondJSON(w, nil, http.StatusInternalServerError)
+		return
+	}
+	s.respondJSON(w, map[string]string{
+		"id":          user.ID,
+		"name":        user.Name,
+		"displayName": user.DisplayName,
+	})
 }
 
 func (s *Server) getRegistrationSessionKey(username string) string {
